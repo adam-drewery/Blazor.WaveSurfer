@@ -30,7 +30,7 @@ window.WaveSurfer = require('wavesurfer.js');
         if (firstRender)
         {
             var options = new WaveSurferOptions(/* your options here */); 
-            waveSurfer = new WaveSurfer("waveform");
+            waveSurfer = await WaveSurfer.Create("waveform");
             await waveSurfer.LoadAsync("https://wavesurfer-js.org/example/split-channels/stereo.mp3");
         }
     }
