@@ -152,6 +152,7 @@ public class WaveSurfer : IAsyncDisposable
     }
 
     [JSInvokable]
+    // ReSharper disable once CyclomaticComplexity
     public virtual Task OnEvent(string eventName, dynamic args)
     {
         switch (eventName)
@@ -202,8 +203,6 @@ public class WaveSurfer : IAsyncDisposable
                     ?? Task.CompletedTask;
             case "zoom":
                 return Zoomed?.Invoke(this, new ZoomEventArgs { MinPxPerSec = args.MinPxPerSec }) ?? Task.CompletedTask;
-            default:
-                break;
         }
 
         return Task.CompletedTask;
