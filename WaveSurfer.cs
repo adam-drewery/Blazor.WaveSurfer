@@ -26,7 +26,6 @@ public class WaveSurfer : IAsyncDisposable
         };";
 
         await jsRuntime.InvokeVoidAsync("eval", function);
-        
         var javascriptObject = await jsRuntime.InvokeAsync<IJSObjectReference>("WaveSurfer.create", options);
         var surfer = new WaveSurfer(javascriptObject, jsRuntime);
         
@@ -38,7 +37,7 @@ public class WaveSurfer : IAsyncDisposable
         await surfer.WireUp("finish", nameof(OnFinished));
         await surfer.WireUp("interaction", nameof(OnInteracted));
         await surfer.WireUp("load", nameof(OnLoaded));
-        await surfer.WireUp("loading", nameof(OnLoading)); // Note: You might need to adjust this based on the actual data you're receiving.
+        await surfer.WireUp("loading", nameof(OnLoading));
         await surfer.WireUp("pause", nameof(OnPaused));
         await surfer.WireUp("play", nameof(OnPlayed));
         await surfer.WireUp("ready", nameof(OnReady));
@@ -106,6 +105,7 @@ public class WaveSurfer : IAsyncDisposable
     public async Task<string> GetWrapperAsync() => await _jsObject.InvokeAsync<string>("getWrapper");        
     public async Task<bool> IsPlayingAsync() => await _jsObject.InvokeAsync<bool>("isPlaying");
     public async Task LoadAsync(string url) => await _jsObject.InvokeVoidAsync("load", url);
+    public async Task LoadAsync(string url, double[] peaks) => await _jsObject.InvokeVoidAsync("load", url, peaks);
     public async Task LoadAudioAsync(string url, byte[] blob) => await _jsObject.InvokeVoidAsync("loadAudio", url, blob);
     public async Task LoadBlobAsync(byte[] blob) => await _jsObject.InvokeVoidAsync("loadBlob", blob);
     public async Task PlayPauseAsync() => await _jsObject.InvokeVoidAsync("playPause");

@@ -75,7 +75,7 @@ namespace Blazor.WaveSurfer
         public bool? AutoCenter { get; set; }
 
         /// <summary>Decoding sample rate. Doesn't affect the playback. Defaults to 8000.</summary>
-        public double? SampleRate { get; set; }
+        public double? SampleRate { get; set; } = 8000;
 
         /// <summary>Render each audio channel as a separate waveform.</summary>
         public List<WaveSurferOptions>? SplitChannels { get; set; }
