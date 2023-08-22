@@ -35,3 +35,5 @@ window.WaveSurfer = require('wavesurfer.js');
         }
     }
 }
+```
+Refer to the [wavesurfer.js documentation](https://wavesurfer-js.org/docs/) for more information.
