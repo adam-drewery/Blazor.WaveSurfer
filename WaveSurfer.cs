@@ -1,4 +1,5 @@
-﻿using Blazor.WaveSurfer.EventArgs;
+﻿using System.Text.Json;
+using Blazor.WaveSurfer.EventArgs;
 using Blazor.WaveSurfer.Plugins;
 using Microsoft.JSInterop;
 
@@ -148,32 +149,32 @@ public class WaveSurfer : IAsyncDisposable
 
     [JSInvokable]
     // ReSharper disable once CyclomaticComplexity
-    public virtual Task OnEvent(string eventName, dynamic args)
+    public virtual Task OnEvent(string eventName, JsonElement args)
     {
         switch (eventName)
         {
             case "audioprocess":
-                return AudioProcessed?.Invoke(this, new AudioProcessEventArgs { CurrentTime = args.CurrentTime })
+                return AudioProcessed?.Invoke(this, new AudioProcessEventArgs { CurrentTime = args.GetDouble() })
                     ?? Task.CompletedTask;
             case "click":
-                return Clicked?.Invoke(this, new ClickEventArgs { RelativeX = args.RelativeX }) ?? Task.CompletedTask;
+                return Clicked?.Invoke(this, new ClickEventArgs { RelativeX = args.GetDouble() }) ?? Task.CompletedTask;
             case "decode":
                 return Decoded?.Invoke(this, new DecodeEventArgs()) ?? Task.CompletedTask;
             case "destroy":
                 Destroyed?.Invoke(this, System.EventArgs.Empty);
                 break;
             case "drag":
-                return Dragged?.Invoke(this, new DragEventArgs { RelativeX = args.RelativeX }) ?? Task.CompletedTask;
+                return Dragged?.Invoke(this, new DragEventArgs { RelativeX = args.GetDouble() }) ?? Task.CompletedTask;
             case "finish":
                 Finished?.Invoke(this, System.EventArgs.Empty);
                 break;
             case "interaction":
-                return Interacted?.Invoke(this, new InteractionEventArgs { NewTime = args.NewTime })
+                return Interacted?.Invoke(this, new InteractionEventArgs { NewTime = args.GetDouble() })
                     ?? Task.CompletedTask;
             case "load":
-                return Loaded?.Invoke(this, new LoadEventArgs { Url = args.Url }) ?? Task.CompletedTask;
+                return Loaded?.Invoke(this, new LoadEventArgs { Url = args.GetString() }) ?? Task.CompletedTask;
             case "loading":
-                return Loading?.Invoke(this, new LoadingEventArgs { Percent = args.Percent }) ?? Task.CompletedTask;
+                return Loading?.Invoke(this, new LoadingEventArgs { Percent = args.GetDouble() }) ?? Task.CompletedTask;
             case "pause":
                 Paused?.Invoke(this, System.EventArgs.Empty);
                 break;
@@ -186,18 +187,16 @@ public class WaveSurfer : IAsyncDisposable
                 Redrawn?.Invoke(this, System.EventArgs.Empty);
                 break;
             case "scroll":
-                return Scrolled?.Invoke(this,
-                        new ScrollEventArgs
-                            { VisibleStartTime = args.VisibleStartTime, VisibleEndTime = args.VisibleEndTime })
+                return Scrolled?.Invoke(this, new ScrollEventArgs { VisibleStartTime = args.GetProperty("visibleStartTime").GetDouble(), VisibleEndTime = args.GetProperty("visibleEndTime").GetDouble() })
                     ?? Task.CompletedTask;
             case "seek":
-                return Seeking?.Invoke(this, new SeekingEventArgs { CurrentTime = args.CurrentTime })
+                return Seeking?.Invoke(this, new SeekingEventArgs { CurrentTime = args.GetDouble() })
                     ?? Task.CompletedTask;
             case "timeupdate":
-                return TimeUpdated?.Invoke(this, new TimeUpdateEventArgs { CurrentTime = args.CurrentTime })
+                return TimeUpdated?.Invoke(this, new TimeUpdateEventArgs { CurrentTime = args.GetDouble() })
                     ?? Task.CompletedTask;
             case "zoom":
-                return Zoomed?.Invoke(this, new ZoomEventArgs { MinPxPerSec = args.MinPxPerSec }) ?? Task.CompletedTask;
+                return Zoomed?.Invoke(this, new ZoomEventArgs { MinPxPerSec = args.GetDouble() }) ?? Task.CompletedTask;
         }
 
         return Task.CompletedTask;
