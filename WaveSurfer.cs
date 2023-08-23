@@ -18,14 +18,32 @@ public class WaveSurfer : IAsyncDisposable
     public static async Task<WaveSurfer> CreateAsync(IJSRuntime jsRuntime, WaveSurferOptions options)
     {
         // setup utility js function first
-        const string function = @"
-            window.setupCallback = function(dotNetReference, waveSurferInstance, eventName) {
+        const string function = 
+            @"window.setupCallback = function(dotNetReference, waveSurferInstance, eventName) {
             waveSurferInstance.on(eventName, function(args) {
                 dotNetReference.invokeMethodAsync('OnEvent', eventName, args);
             });
         };";
 
+        const string blobWrapper =
+            @"window.blobWrapper = function(instance, methodName, ...args) {
+            const processedArgs = args.map(arg => {
+                if (arg instanceof Uint8Array) {
+                    return new Blob([arg]);
+                }
+                return arg;
+            });
+
+            if (instance && typeof instance[methodName] === 'function') {
+                instance[methodName](...processedArgs);
+            } else {
+                console.error(`Method ${methodName} is not defined on the provided instance.`);
+            }
+        };";
+
         await jsRuntime.InvokeVoidAsync("eval", function);
+        await jsRuntime.InvokeVoidAsync("eval", blobWrapper);
+        
         var javascriptObject = await jsRuntime.InvokeAsync<IJSObjectReference>("WaveSurfer.create", options);
         var surfer = new WaveSurfer(javascriptObject, jsRuntime);
 
@@ -118,7 +136,7 @@ public class WaveSurfer : IAsyncDisposable
     public async Task LoadAsync(string url) => await _jsObject.InvokeVoidAsync("load", url);
     public async Task LoadAsync(string url, double[] peaks) => await _jsObject.InvokeVoidAsync("load", url, peaks);
     public async Task LoadAudioAsync(string url, byte[] blob) => await _jsObject.InvokeVoidAsync("loadAudio", url, blob);
-    public async Task LoadBlobAsync(byte[] blob) => await _jsObject.InvokeVoidAsync("loadBlob", blob);
+    public async Task LoadBlobAsync(byte[] blob) => await _jsRuntime.InvokeVoidAsync("blobWrapper", _jsObject, "loadBlob", blob);
     public async Task PlayPauseAsync() => await _jsObject.InvokeVoidAsync("playPause");
     public async Task SeekToAsync(double progress) => await _jsObject.InvokeVoidAsync("seekTo", progress);
     public async Task SetMutedAsync(bool muted) => await _jsObject.InvokeVoidAsync("setMuted", muted);
