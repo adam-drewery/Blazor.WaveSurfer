@@ -16,5 +16,5 @@ public class SingleRegion
     
     public double MinLength { get; set; } = 0;
     
-    public double MaxLength { get; set; } = double.PositiveInfinity;
+    public double? MaxLength { get; set; } = double.PositiveInfinity;
 }

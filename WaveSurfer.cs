@@ -137,7 +137,11 @@ public class WaveSurfer : IAsyncDisposable
     public async Task SkipAsync(double seconds) => await _jsObject.InvokeVoidAsync("skip", seconds);
     public async Task ToggleInteractionAsync(bool isInteractive) => await _jsObject.InvokeVoidAsync("toggleInteraction", isInteractive);
     public async Task ZoomAsync(double minPxPerSec) => await _jsObject.InvokeVoidAsync("zoom", minPxPerSec);
-    public async Task<GenericPlugin> RegisterPluginAsync(GenericPlugin plugin) => await _jsObject.InvokeAsync<GenericPlugin>("registerPlugin", plugin.JsObject);
+    public async Task<T> RegisterPluginAsync<T>(T plugin) where T : GenericPlugin
+    {
+        await _jsObject.InvokeVoidAsync("registerPlugin", plugin.JsObject);
+        return plugin;
+    }
 
     public void Dispose() => _jsObject.InvokeVoidAsync("destroy");
 
