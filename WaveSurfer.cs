@@ -135,7 +135,7 @@ public class WaveSurfer : IAsyncDisposable
     public async Task<bool> IsPlayingAsync() => await _jsObject.InvokeAsync<bool>("isPlaying");
     public async Task LoadAsync(string url) => await _jsObject.InvokeVoidAsync("load", url);
     public async Task LoadAsync(string url, double[] peaks) => await _jsObject.InvokeVoidAsync("load", url, peaks);
-    public async Task LoadAudioAsync(string url, byte[] blob) => await _jsObject.InvokeVoidAsync("loadAudio", url, blob);
+    public async Task LoadAudioAsync(string url, byte[] blob) => await _jsRuntime.InvokeVoidAsync("blobWrapper", "loadAudio", url, blob);
     public async Task LoadBlobAsync(byte[] blob) => await _jsRuntime.InvokeVoidAsync("blobWrapper", _jsObject, "loadBlob", blob);
     public async Task PlayPauseAsync() => await _jsObject.InvokeVoidAsync("playPause");
     public async Task SeekToAsync(double progress) => await _jsObject.InvokeVoidAsync("seekTo", progress);
