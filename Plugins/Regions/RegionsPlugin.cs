@@ -1,17 +1,14 @@
 using System.Text.Json;
-using Blazor.WaveSurfer.Plugins.Regions.EventArgs;
 using Microsoft.JSInterop;
 
 namespace Blazor.WaveSurfer.Plugins.Regions;
 
 public class RegionsPlugin : GenericPlugin
 {
-    private readonly Events _helper;
     public override IJSObjectReference JsObject { get; }
 
-    private RegionsPlugin(IJSObjectReference jsObject, Events helper)
+    private RegionsPlugin(IJSObjectReference jsObject)
     {
-        _helper = helper;
         JsObject = jsObject;
     }
 
@@ -19,22 +16,79 @@ public class RegionsPlugin : GenericPlugin
     {
         var jsObject = await jsRuntime.InvokeAsync<IJSObjectReference>("RegionsPlugin.create");
         var helper = await Events.Setup(jsRuntime, jsObject);
-        var plugin = new RegionsPlugin(jsObject, helper);
+        var plugin = new RegionsPlugin(jsObject);
         
-        await helper.WireUp(plugin, "click");
-        await helper.WireUp(plugin, "dblclick");
-        await helper.WireUp(plugin, "leave");
-        await helper.WireUp(plugin, "over");
-        await helper.WireUp(plugin, "play");
-        await helper.WireUp(plugin, "remove");
-        await helper.WireUp(plugin, "update");
-        await helper.WireUp(plugin, "update-end");
+        await helper.WireUp(plugin, "region-clicked");
+        await helper.WireUp(plugin, "region-created");
+        await helper.WireUp(plugin, "region-double-clicked");
+        await helper.WireUp(plugin, "region-in");
+        await helper.WireUp(plugin, "region-out");
+        await helper.WireUp(plugin, "region-updated");
 
         return plugin;
     }
+    
+    public event RegionClickedEventHandler? RegionClicked;
+    public event RegionCreatedEventHandler? RegionCreated;
+    public event RegionDoubleClickedEventHandler? RegionDoubleClicked;
+    public event RegionInEventHandler? RegionIn;
+    public event RegionOutEventHandler? RegionOut;
+    public event RegionUpdatedEventHandler? RegionUpdated;
 
-    public async Task<SingleRegion> AddRegionAsync(RegionParams options) =>
-        await JsObject.InvokeAsync<SingleRegion>("addRegion", options);
+    public delegate Task RegionClickedEventHandler(object sender, RegionClickedEventArgs e);
+    public delegate Task RegionCreatedEventHandler(object sender, RegionCreatedEventArgs e);
+    public delegate Task RegionDoubleClickedEventHandler(object sender, RegionDoubleClickedEventArgs e);
+    public delegate Task RegionInEventHandler(object sender, RegionInEventArgs e);
+    public delegate Task RegionOutEventHandler(object sender, RegionOutEventArgs e);
+    public delegate Task RegionUpdatedEventHandler(object sender, RegionUpdatedEventArgs e);
+
+    [JSInvokable]
+    // ReSharper disable once CyclomaticComplexity
+    public virtual Task OnEvent(string eventName, JsonElement args)
+    {
+        switch (eventName)
+        {
+            case "region-clicked":
+                var clickedArgs = new RegionClickedEventArgs { Region = args.Deserialize<Region>() };
+                return RegionClicked?.Invoke(this, clickedArgs) ?? Task.CompletedTask;
+
+            case "region-created":
+                var createdArgs = new RegionCreatedEventArgs { Region = SafeGetProperty<Region>(args, "region") };
+                return RegionCreated?.Invoke(this, createdArgs) ?? Task.CompletedTask;
+
+            case "region-double-clicked":
+                var doubleClickedArgs = new RegionDoubleClickedEventArgs { Region = SafeGetProperty<Region>(args, "region"), MouseEvent = SafeGetProperty<MouseEvent>(args, "e") };
+                return RegionDoubleClicked?.Invoke(this, doubleClickedArgs) ?? Task.CompletedTask;
+
+            case "region-in":
+                var inArgs = new RegionInEventArgs { Region = SafeGetProperty<Region>(args, "region") };
+                return RegionIn?.Invoke(this, inArgs) ?? Task.CompletedTask;
+
+            case "region-out":
+                var outArgs = new RegionOutEventArgs { Region = args.Deserialize<Region>() };
+                return RegionOut?.Invoke(this, outArgs) ?? Task.CompletedTask;
+
+            case "region-updated":
+                var updatedArgs = new RegionUpdatedEventArgs { Region = SafeGetProperty<Region>(args, "region") };
+                return RegionUpdated?.Invoke(this, updatedArgs) ?? Task.CompletedTask;
+
+            // ... other events
+        }
+
+    
+
+        return Task.CompletedTask;
+    }
+    
+    private T? SafeGetProperty<T>(JsonElement element, string propertyName)
+    {
+        return element.TryGetProperty(propertyName, out var property) 
+            ? property.Deserialize<T>() 
+            : default;
+    }
+
+    public async Task<Region> AddRegionAsync(RegionParams options) =>
+        await JsObject.InvokeAsync<Region>("addRegion", options);
 
     public async Task ClearRegionsAsync() => await JsObject.InvokeVoidAsync("clearRegions");
 
@@ -43,56 +97,39 @@ public class RegionsPlugin : GenericPlugin
     // todo how to do omit<>
     //public async Task EnableDragSelection(OmitRegionParams options) => await JsObject.InvokeVoidAsync("enableDragSelection", options);
 
-    public async Task<SingleRegion[]> GetRegionsAsync() => await JsObject.InvokeAsync<SingleRegion[]>("getRegions");
+    public async Task<Region[]> GetRegionsAsync() => await JsObject.InvokeAsync<Region[]>("getRegions");
 
     public async Task InitAsync(WaveSurfer wavesurfer) => await JsObject.InvokeVoidAsync("init", wavesurfer);
-    
-    public event ClickEventHandler? Clicked;
-    public event DblClickEventHandler? DoubleClicked;
-    public event LeaveEventHandler? Left;
-    public event OverEventHandler? Over;
-    public event EventHandler? Played;
-    public event EventHandler? Removed;
-    public event EventHandler? Updated;
-    public event EventHandler? UpdateEnded;
+}
 
-    public delegate Task ClickEventHandler(object sender, ClickEventArgs e);
-    public delegate Task DblClickEventHandler(object sender, DblClickEventArgs e);
-    public delegate Task LeaveEventHandler(object sender, LeaveEventArgs e);
-    public delegate Task OverEventHandler(object sender, OverEventArgs e);
-    
-    // ReSharper disable once CyclomaticComplexity
-    [JSInvokable]
-    public virtual Task OnEvent(string eventName, JsonElement args)
-    {
-        switch (eventName)
-        {
-            case "click":
-                return Clicked?.Invoke(this, new ClickEventArgs(args.Deserialize<MouseEvent>()))
-                    ?? Task.CompletedTask;
-            case "dblclick":
-                return DoubleClicked?.Invoke(this, new DblClickEventArgs(args.Deserialize<MouseEvent>()))
-                    ?? Task.CompletedTask;
-            case "leave":
-                return Left?.Invoke(this, new LeaveEventArgs(args.Deserialize<MouseEvent>()))
-                    ?? Task.CompletedTask;
-            case "over":
-                return Over?.Invoke(this, new OverEventArgs(args.Deserialize<MouseEvent>()))
-                    ?? Task.CompletedTask;
-            case "play":
-                Played?.Invoke(this, System.EventArgs.Empty);
-                break;
-            case "remove":
-                Removed?.Invoke(this, System.EventArgs.Empty);
-                break;
-            case "update":
-                Updated?.Invoke(this, System.EventArgs.Empty);
-                break;
-            case "update-end":
-                UpdateEnded?.Invoke(this, System.EventArgs.Empty);
-                break;
-        }
+public class RegionCreatedEventArgs : System.EventArgs
+{
+    public Region? Region { get; init; }
+}
 
-        return Task.CompletedTask;
-    }
+public class RegionDoubleClickedEventArgs : System.EventArgs
+{
+    public Region? Region { get; init; }
+        
+    public MouseEvent? MouseEvent { get; init; }
+}
+
+public class RegionInEventArgs : System.EventArgs
+{
+    public Region? Region { get; init; }
+}
+
+public class RegionOutEventArgs : System.EventArgs
+{
+    public Region? Region { get; init; }
+}
+
+public class RegionUpdatedEventArgs : System.EventArgs
+{
+    public Region? Region { get; init; }
+}
+
+public class RegionClickedEventArgs : System.EventArgs
+{
+    public Region? Region { get; init; }
 }

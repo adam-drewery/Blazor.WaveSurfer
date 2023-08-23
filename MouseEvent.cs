@@ -41,8 +41,8 @@ public class MouseEvent
     /// <summary>The Y coordinate of the mouse pointer relative to the whole document.</summary>
     public double? PageY { get; init; }
 
-    /// <summary>The secondary target for the event, if there is one.</summary>
-    public object? RelatedTarget { get; init; } // This might need a more specific type.
+    //// <summary>The secondary target for the event, if there is one.</summary>
+    ////public object? RelatedTarget { get; init; } // This might need a more specific type.
 
     /// <summary>The X coordinate of the mouse pointer in global (screen) coordinates.</summary>
     public double? ScreenX { get; init; }
