@@ -92,29 +92,17 @@ public class WaveSurfer : IAsyncDisposable
     public event TimeUpdateEventHandler? TimeUpdated;
     public event ZoomEventHandler? Zoomed;
 
-    // Delegates
     public delegate Task AudioProcessEventHandler(object sender, AudioProcessEventArgs e);
-
     public delegate Task ClickEventHandler(object sender, ClickEventArgs e);
-
     public delegate Task DecodeEventHandler(object sender, DecodeEventArgs e);
-
     public delegate Task DragEventHandler(object sender, DragEventArgs e);
-
     public delegate Task InteractionEventHandler(object sender, InteractionEventArgs e);
-
     public delegate Task LoadEventHandler(object sender, LoadEventArgs e);
-
     public delegate Task LoadingEventHandler(object sender, LoadingEventArgs e);
-
     public delegate Task ReadyEventHandler(object sender, ReadyEventArgs e);
-
     public delegate Task ScrollEventHandler(object sender, ScrollEventArgs e);
-
     public delegate Task SeekingEventHandler(object sender, SeekingEventArgs e);
-
     public delegate Task TimeUpdateEventHandler(object sender, TimeUpdateEventArgs e);
-
     public delegate Task ZoomEventHandler(object sender, ZoomEventArgs e);
 
     public async Task PlayAsync() => await _jsObject.InvokeVoidAsync("play");
@@ -140,23 +128,15 @@ public class WaveSurfer : IAsyncDisposable
     public async Task PlayPauseAsync() => await _jsObject.InvokeVoidAsync("playPause");
     public async Task SeekToAsync(double progress) => await _jsObject.InvokeVoidAsync("seekTo", progress);
     public async Task SetMutedAsync(bool muted) => await _jsObject.InvokeVoidAsync("setMuted", muted);
-
-    public async Task SetOptionsAsync(WaveSurferOptions options) =>
-        await _jsObject.InvokeVoidAsync("setOptions", options);
-
+    public async Task SetOptionsAsync(WaveSurferOptions options) => await _jsObject.InvokeVoidAsync("setOptions", options);
     public async Task SetPlaybackRateAsync(double rate) => await _jsObject.InvokeVoidAsync("setPlaybackRate", rate);
     public async Task SetSinkIdAsync(string sinkId) => await _jsObject.InvokeVoidAsync("setSinkId", sinkId);
     public async Task SetTimeAsync(double time) => await _jsObject.InvokeVoidAsync("setTime", time);
     public async Task SetVolumeAsync(double volume) => await _jsObject.InvokeVoidAsync("setVolume", volume);
     public async Task SkipAsync(double seconds) => await _jsObject.InvokeVoidAsync("skip", seconds);
-
-    public async Task ToggleInteractionAsync(bool isInteractive) =>
-        await _jsObject.InvokeVoidAsync("toggleInteraction", isInteractive);
-
+    public async Task ToggleInteractionAsync(bool isInteractive) => await _jsObject.InvokeVoidAsync("toggleInteraction", isInteractive);
     public async Task ZoomAsync(double minPxPerSec) => await _jsObject.InvokeVoidAsync("zoom", minPxPerSec);
-
-    public async Task<GenericPlugin> RegisterPluginAsync(GenericPlugin plugin)
-        => await _jsObject.InvokeAsync<GenericPlugin>("registerPlugin", plugin.JsObject);
+    public async Task<GenericPlugin> RegisterPluginAsync(GenericPlugin plugin) => await _jsObject.InvokeAsync<GenericPlugin>("registerPlugin", plugin.JsObject);
 
     public void Dispose() => _jsObject.InvokeVoidAsync("destroy");
 
