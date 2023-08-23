@@ -1,7 +1,6 @@
-using Blazor.WaveSurfer.Plugins.Options;
 using Microsoft.JSInterop;
 
-namespace Blazor.WaveSurfer.Plugins;
+namespace Blazor.WaveSurfer.Plugins.Spectrogram;
 
 public class SpectrogramPlugin : GenericPlugin
 {

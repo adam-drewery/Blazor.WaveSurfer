@@ -1,4 +1,4 @@
-namespace Blazor.WaveSurfer.Plugins.Options;
+namespace Blazor.WaveSurfer.Plugins.Record;
 
 public class RecordPluginOptions
 {

@@ -1,4 +1,4 @@
-namespace Blazor.WaveSurfer.Plugins;
+namespace Blazor.WaveSurfer.Plugins.Regions;
 
 public class RegionParams
 {

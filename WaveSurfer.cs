@@ -18,61 +18,29 @@ public class WaveSurfer : IAsyncDisposable
 
     public static async Task<WaveSurfer> CreateAsync(IJSRuntime jsRuntime, WaveSurferOptions options)
     {
-        // setup utility js function first
-        const string function = 
-            @"window.setupCallback = function(dotNetReference, waveSurferInstance, eventName) {
-            waveSurferInstance.on(eventName, function(args) {
-                dotNetReference.invokeMethodAsync('OnEvent', eventName, args);
-            });
-        };";
+        var jsObject = await jsRuntime.InvokeAsync<IJSObjectReference>("WaveSurfer.create", options);
+        var helper = await Events.Setup(jsRuntime, jsObject);
+        var surfer = new WaveSurfer(jsObject, jsRuntime);
 
-        const string blobWrapper =
-            @"window.blobWrapper = function(instance, methodName, ...args) {
-            const processedArgs = args.map(arg => {
-                if (arg instanceof Uint8Array) {
-                    return new Blob([arg]);
-                }
-                return arg;
-            });
-
-            if (instance && typeof instance[methodName] === 'function') {
-                instance[methodName](...processedArgs);
-            } else {
-                console.error(`Method ${methodName} is not defined on the provided instance.`);
-            }
-        };";
-
-        await jsRuntime.InvokeVoidAsync("eval", function);
-        await jsRuntime.InvokeVoidAsync("eval", blobWrapper);
-        
-        var javascriptObject = await jsRuntime.InvokeAsync<IJSObjectReference>("WaveSurfer.create", options);
-        var surfer = new WaveSurfer(javascriptObject, jsRuntime);
-
-        await surfer.WireUp("audioprocess");
-        await surfer.WireUp("click");
-        await surfer.WireUp("decode");
-        await surfer.WireUp("destroy");
-        await surfer.WireUp("drag");
-        await surfer.WireUp("finish");
-        await surfer.WireUp("interaction");
-        await surfer.WireUp("load");
-        await surfer.WireUp("loading");
-        await surfer.WireUp("pause");
-        await surfer.WireUp("play");
-        await surfer.WireUp("ready");
-        await surfer.WireUp("redraw");
-        await surfer.WireUp("scroll");
-        await surfer.WireUp("seek");
-        await surfer.WireUp("timeupdate");
-        await surfer.WireUp("zoom");
+        await helper.WireUp(surfer, "audioprocess");
+        await helper.WireUp(surfer, "click");
+        await helper.WireUp(surfer, "decode");
+        await helper.WireUp(surfer, "destroy");
+        await helper.WireUp(surfer, "drag");
+        await helper.WireUp(surfer, "finish");
+        await helper.WireUp(surfer, "interaction");
+        await helper.WireUp(surfer, "load");
+        await helper.WireUp(surfer, "loading");
+        await helper.WireUp(surfer, "pause");
+        await helper.WireUp(surfer, "play");
+        await helper.WireUp(surfer, "ready");
+        await helper.WireUp(surfer, "redraw");
+        await helper.WireUp(surfer, "scroll");
+        await helper.WireUp(surfer, "seek");
+        await helper.WireUp(surfer, "timeupdate");
+        await helper.WireUp(surfer, "zoom");
 
         return surfer;
-    }
-
-    private async Task WireUp(string eventName)
-    {
-        var @ref = DotNetObjectReference.Create(this);
-        await _jsRuntime.InvokeVoidAsync("setupCallback", @ref, _jsObject, eventName);
     }
 
     public event AudioProcessEventHandler? AudioProcessed;
