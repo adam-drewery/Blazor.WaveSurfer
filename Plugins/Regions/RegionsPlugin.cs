@@ -44,49 +44,38 @@ public class RegionsPlugin : GenericPlugin
 
     [JSInvokable]
     // ReSharper disable once CyclomaticComplexity
-    public virtual Task OnEvent(string eventName, JsonElement args)
+    public virtual Task OnEvent(string eventName, Region region)
     {
         switch (eventName)
         {
             case "region-clicked":
-                var clickedArgs = new RegionClickedEventArgs { Region = args.Deserialize<Region>() };
+                var clickedArgs = new RegionClickedEventArgs { Region = region };
                 return RegionClicked?.Invoke(this, clickedArgs) ?? Task.CompletedTask;
 
             case "region-created":
-                var createdArgs = new RegionCreatedEventArgs { Region = SafeGetProperty<Region>(args, "region") };
+                var createdArgs = new RegionCreatedEventArgs { Region = region };
                 return RegionCreated?.Invoke(this, createdArgs) ?? Task.CompletedTask;
 
             case "region-double-clicked":
-                var doubleClickedArgs = new RegionDoubleClickedEventArgs { Region = SafeGetProperty<Region>(args, "region"), MouseEvent = SafeGetProperty<MouseEvent>(args, "e") };
+                var doubleClickedArgs = new RegionDoubleClickedEventArgs { Region = region };
                 return RegionDoubleClicked?.Invoke(this, doubleClickedArgs) ?? Task.CompletedTask;
 
             case "region-in":
-                var inArgs = new RegionInEventArgs { Region = SafeGetProperty<Region>(args, "region") };
+                var inArgs = new RegionInEventArgs { Region = region };
                 return RegionIn?.Invoke(this, inArgs) ?? Task.CompletedTask;
 
             case "region-out":
-                var outArgs = new RegionOutEventArgs { Region = args.Deserialize<Region>() };
+                var outArgs = new RegionOutEventArgs { Region = region };
                 return RegionOut?.Invoke(this, outArgs) ?? Task.CompletedTask;
 
             case "region-updated":
-                var updatedArgs = new RegionUpdatedEventArgs { Region = SafeGetProperty<Region>(args, "region") };
+                var updatedArgs = new RegionUpdatedEventArgs { Region = region };
                 return RegionUpdated?.Invoke(this, updatedArgs) ?? Task.CompletedTask;
-
-            // ... other events
         }
-
-    
 
         return Task.CompletedTask;
     }
     
-    private T? SafeGetProperty<T>(JsonElement element, string propertyName)
-    {
-        return element.TryGetProperty(propertyName, out var property) 
-            ? property.Deserialize<T>() 
-            : default;
-    }
-
     public async Task<Region> AddRegionAsync(RegionParams options) =>
         await JsObject.InvokeAsync<Region>("addRegion", options);
 
