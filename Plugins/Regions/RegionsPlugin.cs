@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.JSInterop;
 
 namespace Blazor.WaveSurfer.Plugins.Regions;
