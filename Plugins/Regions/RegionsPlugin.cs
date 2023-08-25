@@ -1,3 +1,4 @@
+using Blazor.InterOptimal;
 using Microsoft.JSInterop;
 
 namespace Blazor.WaveSurfer.Plugins.Regions;
@@ -14,7 +15,8 @@ public class RegionsPlugin : GenericPlugin
     public static async Task<RegionsPlugin> CreateAsync(IJSRuntime jsRuntime)
     {
         var jsObject = await jsRuntime.InvokeAsync<IJSObjectReference>("RegionsPlugin.create");
-        var helper = await Events.Setup(jsRuntime, jsObject);
+        var scriptObject = await ScriptObject.CreateAsync(jsRuntime, jsObject);
+        var helper = Events.Setup(scriptObject);
         var plugin = new RegionsPlugin(jsObject);
         
         await helper.WireUp(plugin, "region-clicked");

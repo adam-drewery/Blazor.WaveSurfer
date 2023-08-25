@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Blazor.InterOptimal;
 using Blazor.WaveSurfer.EventArgs;
 using Blazor.WaveSurfer.Plugins;
 using Microsoft.JSInterop;
@@ -7,20 +8,21 @@ namespace Blazor.WaveSurfer;
 
 public class WaveSurfer : IAsyncDisposable
 {
-    private readonly IJSRuntime _jsRuntime;
+    private readonly dynamic _scriptObject;
     private readonly IJSObjectReference _jsObject;
 
-    private WaveSurfer(IJSObjectReference jsObject, IJSRuntime jsRuntime)
+    private WaveSurfer(IJSObjectReference jsObject, dynamic scriptObject)
     {
         _jsObject = jsObject;
-        _jsRuntime = jsRuntime;
+        _scriptObject = scriptObject;
     }
 
     public static async Task<WaveSurfer> CreateAsync(IJSRuntime jsRuntime, WaveSurferOptions options)
     {
         var jsObject = await jsRuntime.InvokeAsync<IJSObjectReference>("WaveSurfer.create", options);
-        var helper = await Events.Setup(jsRuntime, jsObject);
-        var surfer = new WaveSurfer(jsObject, jsRuntime);
+        var scriptObject = await ScriptObject.CreateAsync(jsRuntime, jsObject);
+        var helper = Events.Setup(scriptObject);
+        var surfer = new WaveSurfer(jsObject, scriptObject); 
 
         await helper.WireUp(surfer, "audioprocess");
         await helper.WireUp(surfer, "click");
@@ -74,44 +76,44 @@ public class WaveSurfer : IAsyncDisposable
     public delegate Task TimeUpdateEventHandler(object sender, TimeUpdateEventArgs e);
     public delegate Task ZoomEventHandler(object sender, ZoomEventArgs e);
 
-    public async Task PlayAsync() => await _jsObject.InvokeVoidAsync("play");
-    public async Task PauseAsync() => await _jsObject.InvokeVoidAsync("pause");
-    public async Task StopAsync() => await _jsObject.InvokeVoidAsync("stop");
-    public async Task DestroyAsync() => await _jsObject.InvokeVoidAsync("destroy");
-    public async Task EmptyAsync() => await _jsObject.InvokeVoidAsync("empty");
-    public async Task<double[][]> ExportPeaksAsync() => await _jsObject.InvokeAsync<double[][]>("exportPeaks");
-    public async Task<double> GetCurrentTimeAsync() => await _jsObject.InvokeAsync<double>("getCurrentTime");
-    public async Task<byte[]> GetDecodedDataAsync() => await _jsObject.InvokeAsync<byte[]>("getDecodedData");
-    public async Task<double> GetDurationAsync() => await _jsObject.InvokeAsync<double>("getDuration");
-    public async Task<string> GetMediaElementAsync() => await _jsObject.InvokeAsync<string>("getMediaElement");
-    public async Task<bool> GetMutedAsync() => await _jsObject.InvokeAsync<bool>("getMuted");
-    public async Task<double> GetPlaybackRateAsync() => await _jsObject.InvokeAsync<double>("getPlaybackRate");
-    public async Task<double> GetScrollAsync() => await _jsObject.InvokeAsync<double>("getScroll");
-    public async Task<double> GetVolumeAsync() => await _jsObject.InvokeAsync<double>("getVolume");
-    public async Task<string> GetWrapperAsync() => await _jsObject.InvokeAsync<string>("getWrapper");
-    public async Task<bool> IsPlayingAsync() => await _jsObject.InvokeAsync<bool>("isPlaying");
-    public async Task LoadAsync(string url) => await _jsObject.InvokeVoidAsync("load", url);
-    public async Task LoadAsync(string url, double[] peaks) => await _jsObject.InvokeVoidAsync("load", url, peaks);
-    public async Task LoadAudioAsync(string url, byte[] blob) => await _jsRuntime.InvokeVoidAsync("blobWrapper", "loadAudio", url, blob);
-    public async Task LoadBlobAsync(byte[] blob) => await _jsRuntime.InvokeVoidAsync("blobWrapper", _jsObject, "loadBlob", blob);
-    public async Task PlayPauseAsync() => await _jsObject.InvokeVoidAsync("playPause");
-    public async Task SeekToAsync(double progress) => await _jsObject.InvokeVoidAsync("seekTo", progress);
-    public async Task SetMutedAsync(bool muted) => await _jsObject.InvokeVoidAsync("setMuted", muted);
-    public async Task SetOptionsAsync(WaveSurferOptions options) => await _jsObject.InvokeVoidAsync("setOptions", options);
-    public async Task SetPlaybackRateAsync(double rate) => await _jsObject.InvokeVoidAsync("setPlaybackRate", rate);
-    public async Task SetSinkIdAsync(string sinkId) => await _jsObject.InvokeVoidAsync("setSinkId", sinkId);
-    public async Task SetTimeAsync(double time) => await _jsObject.InvokeVoidAsync("setTime", time);
-    public async Task SetVolumeAsync(double volume) => await _jsObject.InvokeVoidAsync("setVolume", volume);
-    public async Task SkipAsync(double seconds) => await _jsObject.InvokeVoidAsync("skip", seconds);
-    public async Task ToggleInteractionAsync(bool isInteractive) => await _jsObject.InvokeVoidAsync("toggleInteraction", isInteractive);
-    public async Task ZoomAsync(double minPxPerSec) => await _jsObject.InvokeVoidAsync("zoom", minPxPerSec);
+    public async Task PlayAsync() => await _scriptObject.play();
+    public async Task PauseAsync() => await _scriptObject.pause();
+    public async Task StopAsync() => await _scriptObject.stop();
+    public async Task DestroyAsync() => await _scriptObject.destroy();
+    public async Task EmptyAsync() => await _scriptObject.empty();
+    public async Task<double[][]> ExportPeaksAsync() => await _scriptObject.exportPeaks();
+    public async Task<double> GetCurrentTimeAsync() => await _scriptObject.getCurrentTime();
+    public async Task<byte[]> GetDecodedDataAsync() => await _scriptObject.getDecodedData();
+    public async Task<double> GetDurationAsync() => await _scriptObject.getDuration();
+    public async Task<string> GetMediaElementAsync() => await _scriptObject.getMediaElement();
+    public async Task<bool> GetMutedAsync() => await _scriptObject.getMuted();
+    public async Task<double> GetPlaybackRateAsync() => await _scriptObject.getPlaybackRate();
+    public async Task<double> GetScrollAsync() => await _scriptObject.getScroll();
+    public async Task<double> GetVolumeAsync() => await _scriptObject.getVolume();
+    public async Task<string> GetWrapperAsync() => await _scriptObject.getWrapper();
+    public async Task<bool> IsPlayingAsync() => await _scriptObject.isPlaying();
+    public async Task LoadAsync(string url) => await _scriptObject.load(url);
+    public async Task LoadAsync(string url, double[] peaks) => await _scriptObject.load(url, peaks);
+    public async Task LoadAudioAsync(string url, Blob blob) => await _scriptObject.loadAudio(url, blob);
+    public async Task LoadBlobAsync(Blob blob) => await _scriptObject.loadBlob(blob);
+    public async Task PlayPauseAsync() => await _scriptObject.playPause();
+    public async Task SeekToAsync(double progress) => await _scriptObject.seekTo(progress);
+    public async Task SetMutedAsync(bool muted) => await _scriptObject.setMuted(muted);
+    public async Task SetOptionsAsync(WaveSurferOptions options) => await _scriptObject.setOptions(options);
+    public async Task SetPlaybackRateAsync(double rate) => await _scriptObject.setPlaybackRate(rate);
+    public async Task SetSinkIdAsync(string sinkId) => await _scriptObject.setSinkId(sinkId);
+    public async Task SetTimeAsync(double time) => await _scriptObject.setTime(time);
+    public async Task SetVolumeAsync(double volume) => await _scriptObject.setVolume(volume);
+    public async Task SkipAsync(double seconds) => await _scriptObject.skip(seconds);
+    public async Task ToggleInteractionAsync(bool isInteractive) => await _scriptObject.toggleInteraction(isInteractive);
+    public async Task ZoomAsync(double minPxPerSec) => await _scriptObject.zoom(minPxPerSec);
     public async Task<T> RegisterPluginAsync<T>(T plugin) where T : GenericPlugin
     {
-        await _jsObject.InvokeVoidAsync("registerPlugin", plugin.JsObject);
+        await _scriptObject.registerPlugin(plugin.JsObject);
         return plugin;
     }
 
-    public void Dispose() => _jsObject.InvokeVoidAsync("destroy");
+    public void Dispose() => _scriptObject.destroy();
 
     public ValueTask DisposeAsync()
     {
