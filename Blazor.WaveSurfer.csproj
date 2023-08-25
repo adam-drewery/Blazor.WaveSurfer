@@ -10,8 +10,4 @@
       <PackageReference Include="Microsoft.JSInterop" Version="7.0.10" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Blazor.InterOptimal\Blazor.InterOptimal.csproj" />
-    </ItemGroup>
-
 </Project>
