@@ -1,22 +1,28 @@
+using Blazor.InterOptimal;
+
 namespace Blazor.WaveSurfer.Plugins.Regions;
 
 public class Region
 {
-    public string? Id { get; set; }
+    private readonly dynamic _scriptObject;
+
+    public Region(ScriptObject scriptObject) => _scriptObject = scriptObject;
+
+    public string? Id => _scriptObject.id;
     
-    public double Start { get; set; }
+    public double Start => _scriptObject.start;
     
-    public double End { get; set; }
+    public double End => _scriptObject.end;
     
-    public bool Drag { get; set; }
+    public bool Drag => _scriptObject.drag;
     
-    public bool Resize { get; set; }
+    public bool Resize => _scriptObject.resize;
     
-    public string? Color { get; set; }
+    public string? Color => _scriptObject.color;
     
-    public double MinLength { get; set; } = 0;
+    public double MinLength => _scriptObject.minLength;
     
-    public double? MaxLength { get; set; }
+    public double? MaxLength => _scriptObject.maxLength;
     
     // public event ClickEventHandler? Clicked;
     // public event DblClickEventHandler? DoubleClicked;

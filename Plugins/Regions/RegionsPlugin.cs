@@ -20,8 +20,7 @@ public class RegionsPlugin : GenericPlugin
         var jsObject = await jsRuntime.InvokeAsync<IJSObjectReference>("RegionsPlugin.create");
         var scriptObject = await ScriptObject.CreateAsync(jsRuntime, jsObject);
         var plugin = new RegionsPlugin(jsObject, scriptObject);
-        
-        
+
         await plugin.WireUp( "region-clicked");
         await plugin.WireUp( "region-created");
         await plugin.WireUp( "region-double-clicked");
@@ -86,7 +85,7 @@ public class RegionsPlugin : GenericPlugin
         return Task.CompletedTask;
     }
     
-    public async Task<Region> AddRegionAsync(RegionParams options) => await _scriptObject.addRegion(options);
+    public async Task<Region> AddRegionAsync(RegionParams options) => new Region(await _scriptObject.addRegion(options));
 
     public async Task ClearRegionsAsync() => await _scriptObject.clearRegions();
 
