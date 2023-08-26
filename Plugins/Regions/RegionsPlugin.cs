@@ -5,10 +5,13 @@ namespace Blazor.WaveSurfer.Plugins.Regions;
 
 public class RegionsPlugin : GenericPlugin
 {
+    private readonly dynamic _scriptObject;
+    
     public override IJSObjectReference JsObject { get; }
 
-    private RegionsPlugin(IJSObjectReference jsObject)
+    private RegionsPlugin(IJSObjectReference jsObject, dynamic scriptObject)
     {
+        _scriptObject = scriptObject;
         JsObject = jsObject;
     }
 
@@ -16,17 +19,23 @@ public class RegionsPlugin : GenericPlugin
     {
         var jsObject = await jsRuntime.InvokeAsync<IJSObjectReference>("RegionsPlugin.create");
         var scriptObject = await ScriptObject.CreateAsync(jsRuntime, jsObject);
-        var helper = Events.Setup(scriptObject);
-        var plugin = new RegionsPlugin(jsObject);
+        var plugin = new RegionsPlugin(jsObject, scriptObject);
         
-        await helper.WireUp(plugin, "region-clicked");
-        await helper.WireUp(plugin, "region-created");
-        await helper.WireUp(plugin, "region-double-clicked");
-        await helper.WireUp(plugin, "region-in");
-        await helper.WireUp(plugin, "region-out");
-        await helper.WireUp(plugin, "region-updated");
+        
+        await plugin.WireUp( "region-clicked");
+        await plugin.WireUp( "region-created");
+        await plugin.WireUp( "region-double-clicked");
+        await plugin.WireUp( "region-in");
+        await plugin.WireUp( "region-out");
+        await plugin.WireUp( "region-updated");
 
         return plugin;
+    }
+    
+    public async Task WireUp(string eventName)
+    {
+        var func = (dynamic args) => OnEvent(eventName, args);
+        await _scriptObject.on(eventName, func);
     }
     
     public event RegionClickedEventHandler? RegionClicked;
@@ -77,49 +86,16 @@ public class RegionsPlugin : GenericPlugin
         return Task.CompletedTask;
     }
     
-    public async Task<Region> AddRegionAsync(RegionParams options) =>
-        await JsObject.InvokeAsync<Region>("addRegion", options);
+    public async Task<Region> AddRegionAsync(RegionParams options) => await _scriptObject.addRegion(options);
 
-    public async Task ClearRegionsAsync() => await JsObject.InvokeVoidAsync("clearRegions");
+    public async Task ClearRegionsAsync() => await _scriptObject.clearRegions();
 
-    public async Task DestroyAsync() => await JsObject.InvokeVoidAsync("destroy");
+    public async Task DestroyAsync() => await _scriptObject.destroy();
 
     // todo how to do omit<>
     //public async Task EnableDragSelection(OmitRegionParams options) => await JsObject.InvokeVoidAsync("enableDragSelection", options);
 
-    public async Task<Region[]> GetRegionsAsync() => await JsObject.InvokeAsync<Region[]>("getRegions");
+    public async Task<Region[]> GetRegionsAsync() => await _scriptObject.getRegions();
 
-    public async Task InitAsync(WaveSurfer wavesurfer) => await JsObject.InvokeVoidAsync("init", wavesurfer);
-}
-
-public class RegionCreatedEventArgs : System.EventArgs
-{
-    public Region? Region { get; init; }
-}
-
-public class RegionDoubleClickedEventArgs : System.EventArgs
-{
-    public Region? Region { get; init; }
-        
-    public MouseEvent? MouseEvent { get; init; }
-}
-
-public class RegionInEventArgs : System.EventArgs
-{
-    public Region? Region { get; init; }
-}
-
-public class RegionOutEventArgs : System.EventArgs
-{
-    public Region? Region { get; init; }
-}
-
-public class RegionUpdatedEventArgs : System.EventArgs
-{
-    public Region? Region { get; init; }
-}
-
-public class RegionClickedEventArgs : System.EventArgs
-{
-    public Region? Region { get; init; }
+    public async Task InitAsync(WaveSurfer wavesurfer) => await _scriptObject.init(wavesurfer);
 }

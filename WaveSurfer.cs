@@ -21,28 +21,33 @@ public class WaveSurfer : IAsyncDisposable
     {
         var jsObject = await jsRuntime.InvokeAsync<IJSObjectReference>("WaveSurfer.create", options);
         var scriptObject = await ScriptObject.CreateAsync(jsRuntime, jsObject);
-        var helper = Events.Setup(scriptObject);
         var surfer = new WaveSurfer(jsObject, scriptObject); 
 
-        await helper.WireUp(surfer, "audioprocess");
-        await helper.WireUp(surfer, "click");
-        await helper.WireUp(surfer, "decode");
-        await helper.WireUp(surfer, "destroy");
-        await helper.WireUp(surfer, "drag");
-        await helper.WireUp(surfer, "finish");
-        await helper.WireUp(surfer, "interaction");
-        await helper.WireUp(surfer, "load");
-        await helper.WireUp(surfer, "loading");
-        await helper.WireUp(surfer, "pause");
-        await helper.WireUp(surfer, "play");
-        await helper.WireUp(surfer, "ready");
-        await helper.WireUp(surfer, "redraw");
-        await helper.WireUp(surfer, "scroll");
-        await helper.WireUp(surfer, "seek");
-        await helper.WireUp(surfer, "timeupdate");
-        await helper.WireUp(surfer, "zoom");
+        await surfer.WireUp("audioprocess");
+        await surfer.WireUp("click");
+        await surfer.WireUp("decode");
+        await surfer.WireUp("destroy");
+        await surfer.WireUp("drag");
+        await surfer.WireUp("finish");
+        await surfer.WireUp("interaction");
+        await surfer.WireUp("load");
+        await surfer.WireUp("loading");
+        await surfer.WireUp("pause");
+        await surfer.WireUp("play");
+        await surfer.WireUp("ready");
+        await surfer.WireUp("redraw");
+        await surfer.WireUp("scroll");
+        await surfer.WireUp("seek");
+        await surfer.WireUp("timeupdate");
+        await surfer.WireUp("zoom");
 
         return surfer;
+    }
+    
+    public async Task WireUp(string eventName)
+    {
+        var func = (dynamic args) => OnEvent(eventName, args);
+        await _scriptObject.on(eventName, func);
     }
 
     public event AudioProcessEventHandler? AudioProcessed;
