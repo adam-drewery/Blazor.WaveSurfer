@@ -89,35 +89,3 @@ public class RegionsPlugin : GenericPlugin
 
     public async Task InitAsync(WaveSurfer wavesurfer) => await JsObject.InvokeVoidAsync("init", wavesurfer);
 }
-
-public class RegionCreatedEventArgs : System.EventArgs
-{
-    public Region? Region { get; init; }
-}
-
-public class RegionDoubleClickedEventArgs : System.EventArgs
-{
-    public Region? Region { get; init; }
-        
-    public MouseEvent? MouseEvent { get; init; }
-}
-
-public class RegionInEventArgs : System.EventArgs
-{
-    public Region? Region { get; init; }
-}
-
-public class RegionOutEventArgs : System.EventArgs
-{
-    public Region? Region { get; init; }
-}
-
-public class RegionUpdatedEventArgs : System.EventArgs
-{
-    public Region? Region { get; init; }
-}
-
-public class RegionClickedEventArgs : System.EventArgs
-{
-    public Region? Region { get; init; }
-}
