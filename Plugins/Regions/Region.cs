@@ -1,4 +1,4 @@
-using Blazor.InterOptimal;
+using Blazor.JsInterop.Dynamic;
 
 namespace Blazor.WaveSurfer.Plugins.Regions;
 
@@ -6,7 +6,7 @@ public class Region
 {
     private readonly dynamic _scriptObject;
 
-    public Region(ScriptObject scriptObject) => _scriptObject = scriptObject;
+    public Region(DynamicJsObject scriptObject) => _scriptObject = scriptObject;
 
     public string? Id => _scriptObject.id;
     

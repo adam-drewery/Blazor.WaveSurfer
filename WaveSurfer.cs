@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using Blazor.InterOptimal;
+using Blazor.JsInterop.Dynamic;
 using Blazor.WaveSurfer.EventArgs;
 using Blazor.WaveSurfer.Plugins;
 using Microsoft.JSInterop;
@@ -9,19 +9,18 @@ namespace Blazor.WaveSurfer;
 public class WaveSurfer : IAsyncDisposable
 {
     private readonly dynamic _scriptObject;
-    private readonly IJSObjectReference _jsObject;
+    private static DynamicJsRuntime _dynamicRuntime;
 
-    private WaveSurfer(IJSObjectReference jsObject, dynamic scriptObject)
+    private WaveSurfer(dynamic scriptObject)
     {
-        _jsObject = jsObject;
         _scriptObject = scriptObject;
     }
 
-    public static async Task<WaveSurfer> CreateAsync(IJSRuntime jsRuntime, WaveSurferOptions options)
+    public static async Task<WaveSurfer> CreateAsync(DynamicJsRuntime jsRuntime, WaveSurferOptions options)
     {
-        var jsObject = await jsRuntime.InvokeAsync<IJSObjectReference>("WaveSurfer.create", options);
-        var scriptObject = await ScriptObject.CreateAsync(jsRuntime, jsObject);
-        var surfer = new WaveSurfer(jsObject, scriptObject); 
+        _dynamicRuntime = jsRuntime;
+        var jsObject = await _dynamicRuntime.InvokeAsync("WaveSurfer.create", options);
+        var surfer = new WaveSurfer(jsObject); 
 
         await surfer.WireUp("audioprocess");
         await surfer.WireUp("click");
@@ -114,7 +113,7 @@ public class WaveSurfer : IAsyncDisposable
     public async Task ZoomAsync(double minPxPerSec) => await _scriptObject.zoom(minPxPerSec);
     public async Task<T> RegisterPluginAsync<T>(T plugin) where T : GenericPlugin
     {
-        await _scriptObject.registerPlugin(plugin.JsObject);
+        await _scriptObject.registerPlugin(plugin.ScriptObject);
         return plugin;
     }
 
@@ -123,7 +122,8 @@ public class WaveSurfer : IAsyncDisposable
     public ValueTask DisposeAsync()
     {
         Dispose();
-        return _jsObject.DisposeAsync();
+        return ValueTask.CompletedTask;
+        //return _dynamicRuntime.DisposeAsync();
     }
 
     [JSInvokable]

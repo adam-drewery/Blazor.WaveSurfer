@@ -4,10 +4,8 @@ namespace Blazor.WaveSurfer.Plugins.Timeline;
 
 public class TimelinePlugin : GenericPlugin
 {
-    public override IJSObjectReference JsObject { get; }
-
-    private TimelinePlugin(IJSObjectReference jsObject) => JsObject = jsObject;
-
+    public TimelinePlugin(object scriptObject) : base(scriptObject) { }
+    
     public static async Task<TimelinePlugin> Create(IJSRuntime jsRuntime, TimelinePluginOptions options)
     {
         var javascriptObject = await jsRuntime.InvokeAsync<IJSObjectReference>("TimelinePlugin.create", options);

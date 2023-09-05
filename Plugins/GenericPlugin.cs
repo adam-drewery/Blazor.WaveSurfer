@@ -1,8 +1,7 @@
-using Microsoft.JSInterop;
-
 namespace Blazor.WaveSurfer.Plugins;
 
 public abstract class GenericPlugin
 {
-    public abstract IJSObjectReference JsObject { get; }
+    protected GenericPlugin(dynamic scriptObject) => ScriptObject = scriptObject;
+    internal dynamic ScriptObject { get; set; }
 }

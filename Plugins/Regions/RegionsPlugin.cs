@@ -1,25 +1,16 @@
-using Blazor.InterOptimal;
+using Blazor.JsInterop.Dynamic;
 using Microsoft.JSInterop;
 
 namespace Blazor.WaveSurfer.Plugins.Regions;
 
 public class RegionsPlugin : GenericPlugin
 {
-    private readonly dynamic _scriptObject;
+    private RegionsPlugin(object scriptObject) : base(scriptObject) { }
     
-    public override IJSObjectReference JsObject { get; }
-
-    private RegionsPlugin(IJSObjectReference jsObject, dynamic scriptObject)
+    public static async Task<RegionsPlugin> CreateAsync(DynamicJsRuntime jsRuntime)
     {
-        _scriptObject = scriptObject;
-        JsObject = jsObject;
-    }
-
-    public static async Task<RegionsPlugin> CreateAsync(IJSRuntime jsRuntime)
-    {
-        var jsObject = await jsRuntime.InvokeAsync<IJSObjectReference>("RegionsPlugin.create");
-        var scriptObject = await ScriptObject.CreateAsync(jsRuntime, jsObject);
-        var plugin = new RegionsPlugin(jsObject, scriptObject);
+        var scriptObject = await jsRuntime.InvokeAsync("RegionsPlugin.create");
+        var plugin = new RegionsPlugin(scriptObject);
 
         await plugin.WireUp( "region-clicked");
         await plugin.WireUp( "region-created");
@@ -34,7 +25,7 @@ public class RegionsPlugin : GenericPlugin
     public async Task WireUp(string eventName)
     {
         var func = (dynamic args) => OnEvent(eventName, args);
-        await _scriptObject.on(eventName, func);
+        await ScriptObject.on(eventName, func);
     }
     
     public event RegionClickedEventHandler? RegionClicked;
@@ -85,16 +76,16 @@ public class RegionsPlugin : GenericPlugin
         return Task.CompletedTask;
     }
     
-    public async Task<Region> AddRegionAsync(RegionParams options) => new Region(await _scriptObject.addRegion(options));
+    public async Task<Region> AddRegionAsync(RegionParams options) => new Region(await ScriptObject.addRegion(options));
 
-    public async Task ClearRegionsAsync() => await _scriptObject.clearRegions();
+    public async Task ClearRegionsAsync() => await ScriptObject.clearRegions();
 
-    public async Task DestroyAsync() => await _scriptObject.destroy();
+    public async Task DestroyAsync() => await ScriptObject.destroy();
 
     // todo how to do omit<>
     //public async Task EnableDragSelection(OmitRegionParams options) => await JsObject.InvokeVoidAsync("enableDragSelection", options);
 
-    public async Task<Region[]> GetRegionsAsync() => await _scriptObject.getRegions();
+    public async Task<Region[]> GetRegionsAsync() => await ScriptObject.getRegions();
 
-    public async Task InitAsync(WaveSurfer wavesurfer) => await _scriptObject.init(wavesurfer);
+    public async Task InitAsync(WaveSurfer wavesurfer) => await ScriptObject.init(wavesurfer);
 }
