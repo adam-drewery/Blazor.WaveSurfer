@@ -79,7 +79,7 @@ public class WaveSurfer : IAsyncDisposable
     public async Task StopAsync() => await _jsObject.InvokeVoidAsync("stop");
     public async Task DestroyAsync() => await _jsObject.InvokeVoidAsync("destroy");
     public async Task EmptyAsync() => await _jsObject.InvokeVoidAsync("empty");
-    public async Task<string> ExportPeaksAsync() => await _jsObject.InvokeAsync<string>("exportPeaks");
+    public async Task<double[][]> ExportPeaksAsync() => await _jsObject.InvokeAsync<double[][]>("exportPeaks");
     public async Task<double> GetCurrentTimeAsync() => await _jsObject.InvokeAsync<double>("getCurrentTime");
     public async Task<byte[]> GetDecodedDataAsync() => await _jsObject.InvokeAsync<byte[]>("getDecodedData");
     public async Task<double> GetDurationAsync() => await _jsObject.InvokeAsync<double>("getDuration");
