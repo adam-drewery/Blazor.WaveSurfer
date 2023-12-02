@@ -90,7 +90,7 @@ namespace Blazor.WaveSurfer
         //// Excluded as it's better to handle on the JavaScript side.
 
         /// <summary>Options to pass to the fetch method.</summary>
-        public HttpRequestMessage? FetchParams { get; set; }
+        public object? FetchParams { get; set; }
 
         public enum BarAlignment
         {
