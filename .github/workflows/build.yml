@@ -1,0 +1,100 @@
+name: NuGet Package Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: nuget.org
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Update Patch Versions
+      run: |
+        echo "Starting the patch version update process..."
+
+        # Find all .csproj files
+        csprojFiles=$(find . -name '*.csproj')
+        echo "Found .csproj files: $csprojFiles"
+
+        for csprojFile in $csprojFiles; do
+          echo "Processing file: $csprojFile"
+
+          # Check for PackageId, otherwise use project name
+          packageName=$(grep -oPm1 "(?<=<PackageId>)[^<]+" $csprojFile || echo $(basename $csprojFile .csproj))
+          echo "Package name determined: $packageName"
+
+          # Extract or initialize the version
+          version=$(grep -oPm1 "(?<=<Version>)[^<]+" $csprojFile)
+          if [ -z "$version" ]; then
+            echo "No version found in $csprojFile, initializing to default 1.0.0"
+            version="1.0.0"
+            sed -i "/<\/PropertyGroup>/i \ \ <Version>$version<\/Version>" $csprojFile
+          fi
+          echo "Version: $version"
+          majorMinor=$(echo $version | cut -d'.' -f1,2)
+          echo "Major and minor version: $majorMinor"
+
+          # Fetch latest patch version from NuGet
+          echo "Fetching latest patch version for $packageName from NuGet..."
+          nugetListOutput=$(nuget list $packageName -PreRelease)
+          echo "NuGet list output for $packageName: $nugetListOutput"
+
+          filteredList=$(echo "$nugetListOutput" | grep "$majorMinor\." || echo "No versions found")
+          echo "Filtered list for version $majorMinor: $filteredList"
+
+          if [[ $filteredList == "No versions found" ]]; then
+            echo "No versions found for $majorMinor on NuGet. Defaulting to version 1.0.0"
+            newVersion="1.0.0"
+          else
+            sortedList=$(echo "$filteredList" | sort -V)
+            echo "Sorted list of versions: $sortedList"
+
+            latestVersion=$(echo "$sortedList" | tail -n1)
+            echo "Latest version found: $latestVersion"
+
+            latestPatch=$(echo "$latestVersion" | grep -oP "\b\d+\.\d+\.\K\d+" | head -n1)
+            echo "Latest patch version extracted: $latestPatch"
+
+            if [ -z "$latestPatch" ]; then
+              latestPatch=0
+            fi
+
+            newPatch=$((latestPatch + 1))
+            newVersion="$majorMinor.$newPatch"
+            echo "Updating to new version: $newVersion"
+          fi
+
+          # Update .csproj with new patch version
+          newPatch=$((latestPatch + 1))
+          newVersion="$majorMinor.$newPatch"
+          echo "Updating to new version: $newVersion"
+          sed -i "s/<Version>$version<\/Version>/<Version>$newVersion<\/Version>/" $csprojFile
+        done
+
+        echo "Patch version update process completed."
+
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+
+    - name: Pack
+      run: dotnet pack --configuration Release --no-build --output nupkgs
+
+    - name: Publish
+      run: dotnet nuget push "nupkgs/*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key ${{ secrets.NUGET_API_KEY }}
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
