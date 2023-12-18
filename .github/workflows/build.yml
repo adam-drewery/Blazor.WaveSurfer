@@ -47,27 +47,23 @@ jobs:
           majorMinor=$(echo $version | cut -d'.' -f1,2)
           echo "Major and minor version: $majorMinor"
 
-                    # Fetch latest patch version from NuGet
-          echo "Fetching latest patch version for $packageName from NuGet..."
-          nugetListOutput=$(nuget list $packageName -PreRelease)
-          echo "NuGet list output for $packageName: $nugetListOutput"
+          # Fetch latest patch version using NuGet API
+          echo "Fetching latest patch version for $packageName from NuGet using API..."
+          apiResponse=$(curl -s "https://api.nuget.org/v3/registration5-gz-semver2/$packageName/index.json")
+          echo "NuGet API response for $packageName: $apiResponse"
 
-          # Ensure exact match for package name
-          exactMatchPattern="^$packageName\s"
-          filteredList=$(echo "$nugetListOutput" | grep -P "$exactMatchPattern" | grep "$majorMinor\." || echo "No versions found")
-          echo "Filtered list for version $majorMinor: $filteredList"
+          # Extract versions using jq to parse JSON
+          allVersions=$(echo $apiResponse | jq -r '.items[]?.items[]?.catalogEntry | select(.version | startswith("'"$majorMinor"'")) | .version')
+          echo "All versions for $majorMinor: $allVersions"
 
-          if [[ $filteredList == "No versions found" ]]; then
+          if [[ -z "$allVersions" ]]; then
             echo "No versions found for $majorMinor on NuGet. Defaulting to version 1.0.0"
             newVersion="1.0.0"
           else
-            sortedList=$(echo "$filteredList" | sort -V)
-            echo "Sorted list of versions: $sortedList"
-
-            latestVersion=$(echo "$sortedList" | tail -n1)
+            latestVersion=$(echo "$allVersions" | sort -V | tail -n1)
             echo "Latest version found: $latestVersion"
 
-            latestPatch=$(echo "$latestVersion" | grep -oP "\b\d+\.\d+\.\K\d+" | head -n1)
+            latestPatch=$(echo "$latestVersion" | grep -oP "\b\d+\.\d+\.\K\d+")
             echo "Latest patch version extracted: $latestPatch"
 
             if [ -z "$latestPatch" ]; then
