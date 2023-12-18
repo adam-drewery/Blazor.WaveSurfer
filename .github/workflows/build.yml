@@ -47,22 +47,20 @@ jobs:
           majorMinor=$(echo $version | cut -d'.' -f1,2)
           echo "Major and minor version: $majorMinor"
 
-          # Fetch latest patch version using NuGet API
-          echo "Fetching latest patch version for $packageName from NuGet using API..."
-          apiResponse=$(curl -s "https://api.nuget.org/v3/registration5-gz-semver2/$packageName/index.json")
-          echo "NuGet API response for $packageName: $apiResponse"
+          # Fetch latest patch version from NuGet with refined text processing
+          echo "Fetching latest patch version for $packageName from NuGet..."
+          nugetListOutput=$(nuget list $packageName -PreRelease)
+          echo "NuGet list output for $packageName: $nugetListOutput"
 
-          # Extract versions using jq to parse JSON
-          allVersions=$(echo $apiResponse | jq -r '.items[]?.items[]?.catalogEntry | select(.version | startswith("'"$majorMinor"'")) | .version')
-          echo "All versions for $majorMinor: $allVersions"
+          # Use awk for precise matching and version extraction
+          exactMatchPattern="^$packageName\s"
+          latestVersion=$(echo "$nugetListOutput" | awk -v pkg="$packageName" -v ver="$majorMinor" '$0 ~ pkg {print $2}' | grep "$majorMinor\." | sort -V | tail -n1)
+          echo "Latest version found: $latestVersion"
 
-          if [[ -z "$allVersions" ]]; then
+          if [ -z "$latestVersion" ]; then
             echo "No versions found for $majorMinor on NuGet. Defaulting to version 1.0.0"
             newVersion="1.0.0"
           else
-            latestVersion=$(echo "$allVersions" | sort -V | tail -n1)
-            echo "Latest version found: $latestVersion"
-
             latestPatch=$(echo "$latestVersion" | grep -oP "\b\d+\.\d+\.\K\d+")
             echo "Latest patch version extracted: $latestPatch"
 
