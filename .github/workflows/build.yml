@@ -8,8 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment:
-      name: nuget.org
 
     steps:
     - uses: actions/checkout@v2
@@ -54,29 +52,28 @@ jobs:
           nugetListOutput=$(nuget list $packageName -PreRelease)
           echo "NuGet list output for $packageName: $nugetListOutput"
 
-          filteredList=$(echo "$nugetListOutput" | grep "$majorMinor\." || echo "No versions found")
+          filteredList=$(echo "$nugetListOutput" | grep "$majorMinor\.")
           echo "Filtered list for version $majorMinor: $filteredList"
 
-          if [[ $filteredList == "No versions found" ]]; then
-            echo "No versions found for $majorMinor on NuGet. Defaulting to version 1.0.0"
-            newVersion="1.0.0"
-          else
-            sortedList=$(echo "$filteredList" | sort -V)
-            echo "Sorted list of versions: $sortedList"
+          sortedList=$(echo "$filteredList" | sort -V)
+          echo "Sorted list of versions: $sortedList"
 
-            latestVersion=$(echo "$sortedList" | tail -n1)
-            echo "Latest version found: $latestVersion"
+          latestVersion=$(echo "$sortedList" | tail -n1)
+          echo "Latest version found: $latestVersion"
 
-            latestPatch=$(echo "$latestVersion" | grep -oP "\b\d+\.\d+\.\K\d+" | head -n1)
-            echo "Latest patch version extracted: $latestPatch"
+          latestPatch=$(echo "$latestVersion" | grep -oP "\b\d+\.\d+\.\K\d+" | head -n1)
+          echo "Latest patch version extracted: $latestPatch"
 
-            if [ -z "$latestPatch" ]; then
-              latestPatch=0
-            fi
+          if [ -z "$latestPatch" ]; then
+            latestPatch=0
+            echo "No patch versions found on NuGet for $majorMinor, defaulting to 0"
+          fi
 
-            newPatch=$((latestPatch + 1))
-            newVersion="$majorMinor.$newPatch"
-            echo "Updating to new version: $newVersion"
+
+          echo "Latest patch version from NuGet: $latestPatch"
+          if [ -z "$latestPatch" ]; then
+            latestPatch=0
+            echo "No patch versions found on NuGet, defaulting to 0"
           fi
 
           # Update .csproj with new patch version
