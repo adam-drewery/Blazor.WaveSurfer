@@ -1,3 +1,6 @@
+[![NuGet Package Deployment](https://github.com/adam-drewery/Blazor.WaveSurfer/actions/workflows/build.yml/badge.svg)](https://github.com/adam-drewery/Blazor.WaveSurfer/actions/workflows/build.yml)
+
+
 # Blazor.WaveSurfer
 .NET wrapper for the popular [wavesurfer.js](https://wavesurfer-js.org/docs/) library
 
