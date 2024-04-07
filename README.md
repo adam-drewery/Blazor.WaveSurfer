@@ -1,4 +1,5 @@
-[![NuGet Package Deployment](https://github.com/adam-drewery/Blazor.WaveSurfer/actions/workflows/build.yml/badge.svg)](https://github.com/adam-drewery/Blazor.WaveSurfer/actions/workflows/build.yml)
+[![GitHub Actions](https://github.com/adam-drewery/Blazor.WaveSurfer/actions/workflows/build.yml/badge.svg)](https://github.com/adam-drewery/Blazor.WaveSurfer/actions/workflows/build.yml)
+[![NuGet (Blazor.WaveSurfer)](https://img.shields.io/nuget/v/Blazor.WaveSurfer.svg?style=flat-square)](https://www.nuget.org/packages/Blazor.WaveSurfer/)
 
 
 # Blazor.WaveSurfer
