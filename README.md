@@ -6,7 +6,7 @@
 .NET wrapper for the popular [wavesurfer.js](https://wavesurfer-js.org/docs/) library
 
 ## Requires:
-- .net 7
+- .net 8
 - Microsoft.JSInterop
 
 ## Client-side configuration:
